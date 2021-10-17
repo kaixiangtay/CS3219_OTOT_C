@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { JWT_ACCESS_TOKEN } = require("../config/config");
+const { ROLE } = require("../const/userRole");
 
 var bcrypt = require('bcryptjs');
 
@@ -40,12 +41,10 @@ const createToken = (user) => {
     });
 }
 
-const adminRole = "admin";
-
 const verifyRole = (req, res, next) => {
     const inputRole = req.user.role;
 
-    if (inputRole.toLowerCase() !== adminRole) {
+    if (inputRole.toLowerCase() !== ROLE.ADMIN) {
         return res.status(403).json("Invalid role detected, no admin rights to retrieve data!");
     }
     next();

@@ -1,26 +1,28 @@
-User = require('../models/userModel');
-userAuth = require('../middlewares/userAuth');
+const User = require('../models/userModel');
+const userAuth = require('../middlewares/userAuth');
+const { ROLE } = require("../const/userRole");
 
-exports.register = function (req, res) {
-    var hashedPassword = userAuth.hashPassword(req.body.password);
+const register = (req, res) => {
+    let hashedPassword = userAuth.hashPassword(req.body.password);
 
-    var user = new User();
+    let user = new User();
     user.username = req.body.username;
     user.password = hashedPassword;
-    user.role = req.body.role;
+    let noRoleInput = req.body.role === undefined || req.body.role === "";
+    user.role =  noRoleInput ? ROLE.USER : req.body.role;
 
     // save the user and check for errors
     user.save(function (err) {
         const token = userAuth.createToken(user);
         return res.json({
-            authenticated: true,
+            userRole: user.role,
             token: token,
-            message: 'New User created!'
+            message: "New User created!"
         });
     });
 };
 
-exports.login = function (req, res) {
+const login =  (req, res) => {
     User.findOne({username: req.body.username}, function (err, user) {
         if (!user) {
             return res.status(404).send({ 
@@ -29,7 +31,7 @@ exports.login = function (req, res) {
                 message: "Invalid User!"});
         }
 
-        var isValidPassword = userAuth.comparePassword(req.body.password, user.password);
+        let isValidPassword = userAuth.comparePassword(req.body.password, user.password);
 
         if (!isValidPassword) {
             return res.status(401).send({ 
@@ -48,3 +50,6 @@ exports.login = function (req, res) {
         });
     });
 }
+
+
+module.exports = { login, register };
